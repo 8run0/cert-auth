@@ -7,6 +7,7 @@ import (
 	"crypto/x509/pkix"
 	"log"
 	"math/big"
+	"net"
 	"time"
 )
 
@@ -18,14 +19,21 @@ func GenerateNewKeys() (*rsa.PrivateKey, *rsa.PublicKey) {
 func GenerateCARootCertificate(privKey *rsa.PrivateKey, pubKey *rsa.PublicKey) *x509.Certificate {
 	ca := &x509.Certificate{
 		SerialNumber:          big.NewInt(2021),
-		Subject:               pkix.Name{CommonName: "server-bruno.org", Organization: []string{"server-bruno"}},
-		DNSNames:              []string{"server-bruno.org"},
+		Subject:               pkix.Name{CommonName: "localhost", Organization: []string{"server-bruno"}},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().AddDate(10, 0, 0),
 		IsCA:                  true,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
+	}
+	hosts := []string{"localhost", "127.0.0.1"}
+	for _, h := range hosts {
+		if ip := net.ParseIP(h); ip != nil {
+			ca.IPAddresses = append(ca.IPAddresses, ip)
+		} else {
+			ca.DNSNames = append(ca.DNSNames, h)
+		}
 	}
 	caBytes, err := x509.CreateCertificate(rand.Reader, ca, ca, pubKey, privKey)
 	if err != nil {
@@ -43,14 +51,21 @@ func SignCSRPemWithKeyAndCertificate(csr *x509.CertificateRequest, privKey *rsa.
 		SignatureAlgorithm: csr.SignatureAlgorithm,
 		PublicKeyAlgorithm: csr.PublicKeyAlgorithm,
 		PublicKey:          csr.PublicKey,
-
-		SerialNumber: big.NewInt(2),
-		Issuer:       cert.Subject,
-		Subject:      csr.Subject,
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().Add(24 * time.Hour),
-		KeyUsage:     x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		SerialNumber:       big.NewInt(2),
+		Issuer:             cert.Subject,
+		Subject:            csr.Subject,
+		NotBefore:          time.Now(),
+		NotAfter:           time.Now().Add(24 * time.Hour),
+		KeyUsage:           x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:        []x509.ExtKeyUsage{x509.ExtKeyUsage(x509.KeyUsageDigitalSignature), x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+	}
+	hosts := []string{"localhost", "127.0.0.1"}
+	for _, h := range hosts {
+		if ip := net.ParseIP(h); ip != nil {
+			clientCRTTemplate.IPAddresses = append(clientCRTTemplate.IPAddresses, ip)
+		} else {
+			clientCRTTemplate.DNSNames = append(clientCRTTemplate.DNSNames, h)
+		}
 	}
 	certBytes, err := x509.CreateCertificate(rand.Reader, clientCRTTemplate, cert, csr.PublicKey, privKey)
 	if err != nil {

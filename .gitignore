@@ -1,6 +1,14 @@
-# Binaries for programs and plugins
+# IDEs
+.vscode
+ 
+# Keys and security
+certs
 keys
 *.pem
+*.rsa
+*.cert
+
+# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll

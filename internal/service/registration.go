@@ -54,7 +54,7 @@ const (
 	caRootCertLocation = "./keys/caroot.pem"
 )
 
-func checkForExisitingRoot() (*rsa.PrivateKey, *rsa.PublicKey, *x509.Certificate, error) {
+func checkForExistingRoot() (*rsa.PrivateKey, *rsa.PublicKey, *x509.Certificate, error) {
 	rootKeyPem, err := ioutil.ReadFile(caPrivKeyLocation)
 	if err != nil {
 		return nil, nil, nil, err
@@ -78,7 +78,7 @@ func checkForExisitingRoot() (*rsa.PrivateKey, *rsa.PublicKey, *x509.Certificate
 }
 
 func setupCertificateAuthority() *registrationServiceImpl {
-	caPrivKey, caPubKey, caRootCert, err := checkForExisitingRoot()
+	caPrivKey, caPubKey, caRootCert, err := checkForExistingRoot()
 	if err == nil {
 		log.Printf("existing keys found")
 		regPem := pemEncode(caRootCert.Raw, "CERTIFICATE")

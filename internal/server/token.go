@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TOKENPORT = ":50051"
+	TOKENPORT = ":50052"
 )
 
 type TokenServer struct {
@@ -33,7 +33,7 @@ func (ts *TokenServer) InitTokenHandshake(ctx context.Context, req *kllla.InitTo
 		return nil, err
 	}
 	log.Printf("token %v generated for key: %v ", token, req.Name)
-	return nil, nil
+	return &kllla.InitTokenHandshakeResponse{Encrypted: token}, nil
 }
 
 func (ts *TokenServer) CompleteTokenHandshake(ctx context.Context, req *kllla.CompleteTokenRequest) (res *kllla.CompleteTokenResponse, err error) {
@@ -47,7 +47,7 @@ func (ts *TokenServer) ListenAndServe() {
 	ts.serve(ts.listen())
 }
 func (ts *TokenServer) listen() net.Listener {
-	lis, err := net.Listen("tcp", PORT)
+	lis, err := net.Listen("tcp", TOKENPORT)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -65,7 +65,6 @@ func (ts *TokenServer) serve(lis net.Listener) {
 		grpc.Creds(tlsCredentials),
 	)
 	kllla.RegisterTokenServiceServer(svr, ts)
-
 	if err := svr.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
@@ -74,7 +73,7 @@ func (ts *TokenServer) serve(lis net.Listener) {
 
 func loadTLSCredentials() (credentials.TransportCredentials, error) {
 	// Load server's certificate and private key
-	serverCert, err := tls.LoadX509KeyPair("./keys/caroot.pem", "./keys/capriv.pem")
+	serverCert, err := tls.LoadX509KeyPair("./keys/token-svr-cert.pem", "./keys/token-svr-key.pem")
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +81,6 @@ func loadTLSCredentials() (credentials.TransportCredentials, error) {
 	// Create the credentials and return it
 	config := &tls.Config{
 		Certificates: []tls.Certificate{serverCert},
-		ClientAuth:   tls.NoClientCert,
 	}
 
 	return credentials.NewTLS(config), nil
