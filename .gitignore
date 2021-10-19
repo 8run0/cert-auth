@@ -1,4 +1,6 @@
 # Binaries for programs and plugins
+keys
+*.pem
 *.exe
 *.exe~
 *.dll

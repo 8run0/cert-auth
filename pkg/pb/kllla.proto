@@ -1,0 +1,67 @@
+syntax = "proto3";
+package kllla;
+
+option go_package = "./";
+
+service RegistrationService {
+    rpc GetRegistrationCertificate (GetRegistrationCertificateRequest) returns (GetRegistrationCertificateResponse) {}
+    rpc RequestCASignCSR (RegistrationSignRequest) returns (RegistrationSignResponse) {}
+}
+
+message GetRegistrationCertificateRequest {}
+
+message GetRegistrationCertificateResponse {
+    bytes cert = 1;
+}
+
+message RegistrationSignRequest {
+    string name = 1;
+    bytes csr = 2;
+}
+
+message RegistrationSignResponse {
+    bool is_signed = 1;
+    bytes cert = 2;
+}
+
+service TokenService {
+    rpc InitTokenHandshake (InitTokenHandshakeRequest) returns (InitTokenHandshakeResponse);
+    rpc CompleteTokenHandshake (CompleteTokenRequest) returns (CompleteTokenResponse);
+    rpc IsTokenValid (IsTokenValidRequest) returns (IsTokenValidResponse);
+}
+
+message InitTokenHandshakeRequest {
+    string name = 1; 
+} 
+
+message InitTokenHandshakeResponse {
+    string encrypted = 1; 
+}
+
+message CompleteTokenRequest {
+    string decrypted = 1; 
+} 
+
+message CompleteTokenResponse {
+    string token = 1; 
+}
+
+message IsTokenValidRequest {
+    string token = 1; 
+}
+
+message IsTokenValidResponse {
+    bool valid = 1;
+}
+
+service ShortenService {
+    rpc Shorten(ShortenRequest) returns (ShortenResponse);
+}
+
+message ShortenRequest {
+    string shorten =1; 
+}
+
+message ShortenResponse {
+    string shortened = 2;
+}
