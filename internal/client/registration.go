@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 
 	kllla "github.com/8run0/kllla/pkg/pb"
 	"google.golang.org/grpc"
@@ -69,6 +68,7 @@ func RegisterNewName(name string) {
 	}
 	writePrivAndCertToFile(name, privKey, cert)
 }
+
 func loadTLSCredentials() (credentials.TransportCredentials, error) {
 	// Load certificate of the CA who signed server's certificate
 	pemServerCA, err := ioutil.ReadFile("./keys/ca-cert.pem")
@@ -140,7 +140,6 @@ func createCSRForNewKeyPair(name string) (*rsa.PrivateKey, []byte) {
 		PublicKeyAlgorithm: x509.RSA,
 		PublicKey:          &clientPriv.PublicKey,
 		Subject:            pkix.Name{CommonName: name},
-		IPAddresses:        []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
 	}
 	csrDER, err := x509.CreateCertificateRequest(rand.Reader, template, clientPriv)
 	if err != nil {
